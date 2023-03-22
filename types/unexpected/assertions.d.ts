@@ -3,13 +3,6 @@
 import { Flag, UnexpectedType } from './unexpected';
 
 export type Choice<S extends string = string> = S extends `${infer A}|${infer Rest}` ? A | Choice<Rest> : S;
-// <object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>
-// <any> [not] to be (a|an) <type>
-// <any> [not] to be (ok|truthy) <string>
-// <string> to be (the empty|an empty|a non-empty) string
-// <object> to have (enumerable|unenumerable|configurable|unconfigurable|writable|unwritable|readonly) property <string|Symbol>
-// <object> [not] to [only] have [own] properties <array>
-// <BigInt> [not] to be positive
 
 type Voidable<S extends string, T = S> = S extends '' ? void : T;
 
@@ -59,21 +52,31 @@ type ArrayToTuple<T extends ReadonlyArray<string>, V = string> = keyof {
 
 // export type AssertionParams<Subj, Rest> = ParsedDeclaration<S>
 
-export type DeclarationText = Readonly<
+// <object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>
+// <any> [not] to be (a|an) <type>
+// <any> [not] to be (ok|truthy) <string>
+// <string> to be (the empty|an empty|a non-empty) string
+// <object> to have (enumerable|unenumerable|configurable|unconfigurable|writable|unwritable|readonly) property <string|Symbol>
+// <object> [not] to [only] have [own] properties <array>
+// <BigInt> [not] to be positive
+
+type DeclarationTexts = 
     [
         '<object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>',
         '<any> [not] to be (ok|truthy) <string>',
         '<any|object> to [exhaustively] satisfy [assertion] <expect.it>'
-    ]
->;
+    ];
 
+type Declarations = ParsedDeclaration<DeclarationTexts[number]>;
+
+// type Foo = ParsedDeclaration<DeclarationText[0]>;
+// type FooNext = Foo['next']
 
 export type DeclarationSubject<S extends string> = S extends `<${Choice<
     infer Value extends UnexpectedType
 >}>${string}`
     ? Extract<Value, UnexpectedTypeToType[Value]> : never;
 
-type Butts = DeclarationSubject<'string|number'>
 // export type DeclarationsForType<T> = T extends ParsedDeclarations['value'] ? 
 //     UnexpectedTypeToType[ParsedDeclarations['value']]
 // >;
@@ -103,19 +106,20 @@ type UnexpectedTypeToType = Readonly<{
 type ValueOf<T> = T[keyof T];
 
 
-// export interface Declaration<
-//     Subject extends Choice<UnexpectedType>,
-//     Desc extends string,
-//     OneOf extends Choice<string> | void = void,
-//     F extends Flag | void = void,
-//     Actual extends UnexpectedType | void = void,
-// > {
-//     subject: Subject;
-//     flag?: F;
-//     oneOf?: OneOf;
-//     type?: Actual;
-//     desc: Desc;
-// }
-// > = `<${Subject}> ${F extends Flag ? `[${F}] ` : ''}${Choice<Desc>}${Actual extends UnexpectedType
+export interface Declaration<
+    Subject extends Choice<UnexpectedType>,
+    Desc extends string,
+    OneOf extends Choice<string> | void = void,
+    F extends Flag | void = void,
+    Actual extends UnexpectedType | void = void,
+> {
+    subject: Subject;
+    flag?: F;
+    oneOf?: OneOf;
+    type?: Actual;
+    desc: Desc;
+}
+
+// export type DeclarationTemplate<Subject extends Choice<UnexpectedType>, Desc extends string, F extends Flag | void = void, Actual extends UnexpectedType|void = void> = `<${Subject}> ${F extends Flag ? `[${F}] ` : ''}${Choice<Desc>}${Actual extends UnexpectedType
 //     ? ` <${Actual}>`
 //     : ''}>`;
