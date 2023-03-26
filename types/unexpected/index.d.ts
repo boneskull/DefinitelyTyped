@@ -3,7 +3,14 @@
 // Definitions by: Christopher Hiller <https://github.com/boneskull>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-export {expect as default} from './unexpected';
-export * from './assertions';
+import { Declaration, ParsedDeclaration } from './assertions';
+import {expect} from './unexpected';
+// export * from './assertions';
+
+
+declare function expect<P extends Declaration>(...args: P): Promise<void>;
+
+export default expect;
 
 export as namespace unexpected;
+

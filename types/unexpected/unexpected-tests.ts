@@ -1,16 +1,27 @@
-import {ParsedSubject, ParsedDeclaration, Declaration, Choice, expect} from 'unexpected';
+import expect from './';
+// import { ParsedSubject, ParsedDeclaration, Declaration, Choice } from './';
+
+/**
+ * The `expectType` function from https://www.npmjs.com/package/tsd,
+ * except instead of returning `void`, it returns `T`.
+ */
+declare function expectType<T>(value: T): T;
+
 
 //<object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>
 
 // type baz = AssertionParams<'<object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>'>
-type bar = ParsedDeclaration<'<any> [not] to be (ok|truthy) <string>'>
+// type bar = ParsedDeclaration<'<any> [not] to be (ok|truthy) <string>'>;
 
-// type blah = ParsedSubject<{}>['value']
-
-// type shuff = TypeToParsedDeclarations<object>
-
-type blah = ParsedDeclaration<'<object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>'>;
-
+// type baz = ParsedSubject<'any', '[not] to be (ok|truthy) <string>'>;
+// type blah =
+//     ParsedDeclaration<'<object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>'>;
+// type z = bar[1]
+    
 // function myExpect<T> (subject: T, ...args: AssertionParams<T>): void {}
 
-expect(true, 'to be ok');
+// expect(true, 'to be ok');
+
+expect('foo', 'to be ok');
+
+expect('buybf')

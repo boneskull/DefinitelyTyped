@@ -3,8 +3,10 @@
 // Definitions by: Christopher Hiller <https://github.com/boneskull>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+import { ParsedDeclaration } from "./assertions";
+
 export interface expect {
-    (actual: any, matcher: string, ...expected: any[]): Promise<void>;
+    <T extends string, P extends ParsedDeclaration<T>>(...args: P): Promise<void>;
 
     /**
      * @see http://unexpected.js.org/api/use/
@@ -53,7 +55,7 @@ export interface Assertion {
 export interface Subject {
     minimum: number;
     maximum: number;
-    type: `type: ${UnexpectedType}`;
+    type: `type: ${UnexpectedKind}`;
     args: Subject[];
     testDescriptionString: string;
     declaration: string;
@@ -61,12 +63,14 @@ export interface Subject {
     specificity: number[];
 }
 
-export type UnexpectedType =
+export type UnexpectedKind =
     | 'function'
     | 'array-like'
     | 'any'
     | 'Set'
     | 'object'
+    | 'map'
+    | 'hash'
     | 'Error'
     | 'Buffer'
     | 'binaryArray'
@@ -112,3 +116,4 @@ export interface TypeDefinition<T> {
     equal?(a: T, b: T, equal: (a: any, b: any) => boolean): boolean;
     inspect?(value: T, depth: number, output: any, inspect: (value: any, depth: number) => any): void;
 }
+ 
