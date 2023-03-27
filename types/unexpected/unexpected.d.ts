@@ -3,11 +3,7 @@
 // Definitions by: Christopher Hiller <https://github.com/boneskull>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-import { ParsedDeclaration } from "./assertions";
-
 export interface expect {
-    <T extends string, P extends ParsedDeclaration<T>>(...args: P): Promise<void>;
-
     /**
      * @see http://unexpected.js.org/api/use/
      */
@@ -84,7 +80,7 @@ export type UnexpectedKind =
     | 'Promise'
     | 'wrapperObject'
     | 'undefined'
-    | 'null'    ;
+    | 'null';
 
 export type Flag =
     | 'exhaustively'
@@ -116,4 +112,78 @@ export interface TypeDefinition<T> {
     equal?(a: T, b: T, equal: (a: any, b: any) => boolean): boolean;
     inspect?(value: T, depth: number, output: any, inspect: (value: any, depth: number) => any): void;
 }
- 
+
+type Trim<S extends string> = S extends ` ${infer Rest}` ? Trim<Rest> : S extends `${infer Pre} ` ? Trim<Pre> : S;
+
+type Desc<S extends string> = S extends `${infer A}  ${infer B}` ? Desc<`${A} ${B}`> : Trim<S>;
+
+type Maybe<S extends string> = `${S | Empty}`;
+
+type Choice<T extends readonly string[]> = T extends readonly [
+    infer Head extends string,
+    ...infer Tail extends readonly string[],
+]
+    ? Head | Choice<Tail>
+    : never;
+
+type Join<T extends readonly string[], D extends string = ' '> = T extends readonly [
+    infer Head extends string,
+    ...infer Tail extends readonly string[],
+]
+    ? Desc<`${Head}${D}${Join<Tail>}`>
+    : T extends readonly [infer Head extends string]
+    ? Desc<Head>
+    : '';
+
+type Empty = '';
+type DTrue = 'true';
+type DFalse = 'false';
+type DFalsy = 'falsy';
+type DEmpty = 'empty';
+type DNull = 'null';
+type DUndefined = 'undefined';
+type DDefined = 'defined';
+type DOneOf = 'one of';
+type DNaN = 'NaN';
+
+type DIsOk = `is ${DOk}`;
+type DToBe = 'to be';
+type DExhaustively = 'exhaustively';
+type DSatisfy = 'satisfy';
+type DWhoseValues = 'whose values';
+
+type DAMap = `${DA} map`;
+type DAHash = `${DA} hash`;
+type DAnObject = `${DAn} object`;
+type DOk = 'ok';
+type DTruthy = 'truthy';
+type DA = 'a';
+type DAn = 'an';
+type DNot = 'not';
+
+type DObject = 'object';
+type DArray = 'array';
+type DBoolean = 'boolean';
+type DNumber = 'number';
+type DString = 'string';
+type DFunction = 'function';
+type DRegExp = 'regexp' | 'regex' | 'regular expression';
+type DDate = 'date';
+type DTheEmpty = `the ${Empty}`;
+type DNonEmpty = `${DA} non-${Empty}`;
+type DAnEmpty = `${DAn} ${Empty}`;
+type DToMatch = 'to match';
+type DToHave = 'to have';
+type DProperty = 'property';
+type DOwn = 'own';
+type DToHaveOwnProperty = `${DToHave} ${DOwn} ${DProperty}`;
+type DPropAttr =
+    | 'enumerable'
+    | 'unenumerabloe'
+    | 'configurable'
+    | 'unconfigurable'
+    | 'writable'
+    | 'unwritable'
+    | 'readonly';
+type MaybeNot = Maybe<DNot>;
+type MaybeExhaustively = Maybe<DExhaustively>;

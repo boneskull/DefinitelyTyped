@@ -51,17 +51,15 @@ type ArrayToTuple<T extends ReadonlyArray<string>, V = string> = keyof {
 // <object> [not] to [only] have [own] properties <array>
 // <BigInt> [not] to be positive
 
-type DeclarationTexts = [
-    '<object> to be (a map|a hash|an object) whose values [exhaustively] satisfy <assertion>',
-    '<any> [not] to be (ok|truthy) <string>',
-    '<any|object> to [exhaustively] satisfy [assertion] <expect.it>',
-    '<any> [not] to be (a|an) <type>',
-    '<any> to be ok'
-];
 
-type DeclarationArgs<S extends string, D extends ParsedDeclaration<S>> = D extends [infer Subject, infer Rest] ? [Subject, Rest] : D extends [infer Subject, ...infer Rest] ? ...idk;
 
-export type Declaration = ParsedDeclaration<DeclarationTexts[number]>;
+// type DeclarationTexts = [
+//     '<any> [not] to be (ok|truthy)'
+// ];
+
+// type DeclarationArgs<S extends string, D extends ParsedDeclaration<S>> = D extends [infer Subject, infer Rest] ? [Subject, Rest] : D extends [infer Subject, ...infer Rest] ? ...idk;
+
+// export type Declaration = ParsedDeclaration<DeclarationTexts[number]>;
 
 export interface ExpectIt {
     (...args: any[]): any; 
@@ -93,21 +91,3 @@ type KindToType = {
 };
 
 type FromKind<K extends UnexpectedKind> = KindToType[K];
-
-// export interface Declaration<
-//     Subject extends Choice<UnexpectedKind>,
-//     Desc extends string,
-//     OneOf extends Choice<string> | void = void,
-//     F extends Flag | void = void,
-//     Actual extends UnexpectedKind | void = void,
-// > {
-//     subject: Subject;
-//     flag?: F;
-//     oneOf?: OneOf;
-//     type?: Actual;
-//     desc: Desc;
-// }
-
-// export type DeclarationTemplate<Subject extends Choice<UnexpectedType>, Desc extends string, F extends Flag | void = void, Actual extends UnexpectedType|void = void> = `<${Subject}> ${F extends Flag ? `[${F}] ` : ''}${Choice<Desc>}${Actual extends UnexpectedType
-//     ? ` <${Actual}>`
-//     : ''}>`;
