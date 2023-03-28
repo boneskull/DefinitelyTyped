@@ -45,7 +45,7 @@ export interface expect {
 export interface Assertion {
     handler: (unexpected: expect, subject: any, ...args: any[]) => void;
     alternations: string[];
-    flags: FlagRecord;
+    flags: Record<Flag, boolean>;
 
     subject: Subject;
 }
@@ -94,10 +94,8 @@ export type Flag =
     | 'only'
     | 'own';
 
-export type FlagRecord = Record<Flag, boolean>;
-
-export function failFn<A extends Array<any> = []>(format: string, ...args: A): void;
-export function failFn<E extends Error>(error: E): void;
+export function failFn<A extends any[] = []>(format: string, ...args: A): void;
+export function failFn(error: Error): void;
 
 export interface PluginDefinition {
     name?: string;
@@ -116,102 +114,41 @@ export interface UnexpectedTypeDef<T> {
 
 type Trim<S extends string> = S extends ` ${infer Rest}` ? Trim<Rest> : S extends `${infer Pre} ` ? Trim<Pre> : S;
 
-type Compact<S extends string> = S extends `${infer A}  ${infer B}` ? Compact<`${A} ${B}`> : Trim<S>;
-
-type Join<T extends readonly string[], D extends string = ' '> = T extends readonly [
-    infer Head extends string,
-    ...infer Tail extends readonly string[],
-]
-    ? Compact<`${Head}${D}${Join<Tail>}`>
-    : T extends readonly [infer Head extends string]
-    ? Compact<Head>
-    : '';
-
 type Empty = '';
 
-export type Choice<S extends string> = S extends `${infer A}|${infer Rest}` ? Trim<A> | Choice<Rest> : Trim<S>;
+type TypedArray =
+    | Int8Array
+    | Uint8Array
+    | Uint8ClampedArray
+    | Int16Array
+    | Uint16Array
+    | Int32Array
+    | Uint32Array
+    | Float32Array
+    | Float64Array
+    | BigInt64Array
+    | BigUint64Array;
+
+type AnyFunction = (...args: any[]) => any;
+
+type Expand<S extends string> = S extends `${infer A}|${infer Rest}` ? Trim<A> | Expand<Rest> : Trim<S>;
 
 type ParsedChoice<Value extends string, Rest extends string = Empty, Pre extends string = Empty> = Pre extends Empty
-    ? `${Choice<Value>} ${Desc<Rest>}`
+    ? `${Expand<Value>} ${Desc<Rest>}`
     : Rest extends Empty
-    ? `${Desc<Pre>} ${Choice<Value>}`
-    : `${Desc<Pre>} ${Choice<Value>} ${Desc<Rest>}`;
+    ? `${Desc<Pre>} ${Expand<Value>}`
+    : `${Desc<Pre>} ${Expand<Value>} ${Desc<Rest>}`;
 
-export type ParsedFlag<Value extends Flag, Rest extends string, Pre extends string = Empty> = Pre extends Empty
+type ParsedFlag<Value extends Flag, Rest extends string, Pre extends string = Empty> = Pre extends Empty
     ? `${Value} ${Desc<Rest>}` | Desc<Rest>
     : `${Desc<Pre>} ${Value} ${Desc<Rest>}` | `${Pre} ${Desc<Rest>}`;
 
-type KindToType = {
-    function: (...args: any[]) => any;
-    'array-like': ArrayLike<any>;
-    any: any;
-    Set: Set<any>;
-    object: object;
-    Error: Error;
-    Buffer: Buffer;
-    binaryArray: Uint8Array | Uint16Array | Uint32Array | Int8Array | Int16Array | Int32Array;
-    BigInt: BigInt;
-    number: number;
-    string: string;
-    boolean: boolean;
-    assertion: KindToType['expect.it'];
-    NaN: typeof NaN;
-    'expect.it': ExpectIt;
-    Promise: PromiseLike<any>;
-    wrapperObject: object;
-    undefined: undefined;
-    null: null;
-};
-
-export interface ExpectIt {
-    (...args: any[]): any;
-    _expectIt: any;
-}
-
-type FromKind<K extends UnexpectedKind> = KindToType[K];
-
-type Foo = TypeToKind<string[]>;
-
-export type TypeToKind<T> = T extends (...args: any[]) => any
-    ? 'function'
-    : T extends any[]
-    ? 'array'
-    : T extends ArrayLike<any>
-    ? 'array-like'
-    : T extends Set<any>
-    ? 'Set'
-    : T extends Error
-    ? 'Error'
-    : T extends Buffer
-    ? 'Buffer'
-    : T extends TypedArray
-    ? 'binaryArray'
-    : T extends BigInt
-    ? 'BigInt'
-    : T extends number
-    ? 'number' | 'NaN'
-    : T extends string
-    ? 'string'
-    : T extends boolean
-    ? 'boolean'
-    : // T extends KindToType['assertion'] ? 'assertion' :
-    // T extends KindToType['NaN'] ? 'NaN' :
-    // T extends KindToType['expect.it'] ? 'expect.it' :
-    T extends Promise<any>
-    ? 'Promise'
-    : // T extends KindToType['wrapperObject'] ? 'wrapperObject' :
-    T extends undefined
-    ? 'undefined'
-    : T extends null
-    ? 'null'
-    : T extends object
-    ? 'object'
-    : never;
-
-
 type ParsedType<Pre extends string = Empty> = Pre extends Empty ? UnexpectedKind : `${Desc<Pre>} ${UnexpectedKind}`;
 
-export type Desc<S extends string> = S extends `${infer Pre}(${infer Value})${infer Rest}`
+/**
+ * Converts an assertion description string (e.g., `to be (a map|a hash|an object) whose values [exhaustively] satisfy`) into a type for matching the description (2nd parameter) of an `expect()` overload.
+ */
+type Desc<S extends string> = S extends `${infer Pre}(${infer Value})${infer Rest}`
     ? ParsedChoice<Trim<Value>, Trim<Rest>, Trim<Pre>>
     : S extends `${infer Pre}[${infer Value extends Flag}]${infer Rest}`
     ? ParsedFlag<Value, Trim<Rest>, Trim<Pre>>
@@ -223,18 +160,30 @@ export type Desc<S extends string> = S extends `${infer Pre}(${infer Value})${in
     ? ''
     : S;
 
+type KindToType = {
+    function: AnyFunction;
+    array: any[];
+    'array-like': ArrayLike<any>;
+    any: any;
+    Set: Set<any>;
+    object: object;
+    Error: Error;
+    Buffer: Buffer;
+    binaryArray: TypedArray;
+    BigInt: BigInt;
+    number: number;
+    string: string;
+    boolean: boolean;
+    assertion: any;
+    NaN: number;
+    'expect.it': ExpectIt;
+    Promise: PromiseLike<any>;
+    wrapperObject: object;
+    undefined: undefined;
+    null: null;
+};
 
-export type TypedArray =
-| Int8Array
-| Uint8Array
-| Uint8ClampedArray
-| Int16Array
-| Uint16Array
-| Int32Array
-| Uint32Array
-| Float32Array
-| Float64Array
-| BigInt64Array
-| BigUint64Array;
-
-type AnyFunction = (...args: any[]) => any
+export interface ExpectIt {
+    (...args: any[]): any;
+    _expectIt: any;
+}
