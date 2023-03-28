@@ -3,6 +3,8 @@
 // Definitions by: Christopher Hiller <https://github.com/boneskull>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
+/// <reference types="node"/>
+
 export interface expect {
     /**
      * @see http://unexpected.js.org/api/use/
@@ -25,7 +27,7 @@ export interface expect {
     /**
      * @see http://unexpected.js.org/api/addType/
      */
-    addType: <T>(typeDefinition: TypeDefinition<T>) => expect;
+    addType: <T>(typeDefinition: UnexpectedTypeDef<T>) => expect;
 
     /**
      * @see http://unexpected.js.org/api/fail/
@@ -61,12 +63,11 @@ export interface Subject {
 
 export type UnexpectedKind =
     | 'function'
+    | 'array'
     | 'array-like'
     | 'any'
     | 'Set'
     | 'object'
-    | 'map'
-    | 'hash'
     | 'Error'
     | 'Buffer'
     | 'binaryArray'
@@ -74,11 +75,11 @@ export type UnexpectedKind =
     | 'number'
     | 'string'
     | 'boolean'
-    | 'assertion'
+    // | 'assertion'
     | 'NaN'
-    | 'expect.it'
+    // | 'expect.it'
     | 'Promise'
-    | 'wrapperObject'
+    // | 'wrapperObject'
     | 'undefined'
     | 'null';
 
@@ -105,7 +106,7 @@ export interface PluginDefinition {
     installInto(unexpected: expect): void;
 }
 
-export interface TypeDefinition<T> {
+export interface UnexpectedTypeDef<T> {
     name: string;
     identify(value: any): value is T;
     base?: string;
@@ -115,75 +116,125 @@ export interface TypeDefinition<T> {
 
 type Trim<S extends string> = S extends ` ${infer Rest}` ? Trim<Rest> : S extends `${infer Pre} ` ? Trim<Pre> : S;
 
-type Desc<S extends string> = S extends `${infer A}  ${infer B}` ? Desc<`${A} ${B}`> : Trim<S>;
-
-type Maybe<S extends string> = `${S | Empty}`;
-
-type Choice<T extends readonly string[]> = T extends readonly [
-    infer Head extends string,
-    ...infer Tail extends readonly string[],
-]
-    ? Head | Choice<Tail>
-    : never;
+type Compact<S extends string> = S extends `${infer A}  ${infer B}` ? Compact<`${A} ${B}`> : Trim<S>;
 
 type Join<T extends readonly string[], D extends string = ' '> = T extends readonly [
     infer Head extends string,
     ...infer Tail extends readonly string[],
 ]
-    ? Desc<`${Head}${D}${Join<Tail>}`>
+    ? Compact<`${Head}${D}${Join<Tail>}`>
     : T extends readonly [infer Head extends string]
-    ? Desc<Head>
+    ? Compact<Head>
     : '';
 
 type Empty = '';
-type DTrue = 'true';
-type DFalse = 'false';
-type DFalsy = 'falsy';
-type DEmpty = 'empty';
-type DNull = 'null';
-type DUndefined = 'undefined';
-type DDefined = 'defined';
-type DOneOf = 'one of';
-type DNaN = 'NaN';
 
-type DIsOk = `is ${DOk}`;
-type DToBe = 'to be';
-type DExhaustively = 'exhaustively';
-type DSatisfy = 'satisfy';
-type DWhoseValues = 'whose values';
+export type Choice<S extends string> = S extends `${infer A}|${infer Rest}` ? Trim<A> | Choice<Rest> : Trim<S>;
 
-type DAMap = `${DA} map`;
-type DAHash = `${DA} hash`;
-type DAnObject = `${DAn} object`;
-type DOk = 'ok';
-type DTruthy = 'truthy';
-type DA = 'a';
-type DAn = 'an';
-type DNot = 'not';
+type ParsedChoice<Value extends string, Rest extends string = Empty, Pre extends string = Empty> = Pre extends Empty
+    ? `${Choice<Value>} ${Desc<Rest>}`
+    : Rest extends Empty
+    ? `${Desc<Pre>} ${Choice<Value>}`
+    : `${Desc<Pre>} ${Choice<Value>} ${Desc<Rest>}`;
 
-type DObject = 'object';
-type DArray = 'array';
-type DBoolean = 'boolean';
-type DNumber = 'number';
-type DString = 'string';
-type DFunction = 'function';
-type DRegExp = 'regexp' | 'regex' | 'regular expression';
-type DDate = 'date';
-type DTheEmpty = `the ${Empty}`;
-type DNonEmpty = `${DA} non-${Empty}`;
-type DAnEmpty = `${DAn} ${Empty}`;
-type DToMatch = 'to match';
-type DToHave = 'to have';
-type DProperty = 'property';
-type DOwn = 'own';
-type DToHaveOwnProperty = `${DToHave} ${DOwn} ${DProperty}`;
-type DPropAttr =
-    | 'enumerable'
-    | 'unenumerabloe'
-    | 'configurable'
-    | 'unconfigurable'
-    | 'writable'
-    | 'unwritable'
-    | 'readonly';
-type MaybeNot = Maybe<DNot>;
-type MaybeExhaustively = Maybe<DExhaustively>;
+export type ParsedFlag<Value extends Flag, Rest extends string, Pre extends string = Empty> = Pre extends Empty
+    ? `${Value} ${Desc<Rest>}` | Desc<Rest>
+    : `${Desc<Pre>} ${Value} ${Desc<Rest>}` | `${Pre} ${Desc<Rest>}`;
+
+type KindToType = {
+    function: (...args: any[]) => any;
+    'array-like': ArrayLike<any>;
+    any: any;
+    Set: Set<any>;
+    object: object;
+    Error: Error;
+    Buffer: Buffer;
+    binaryArray: Uint8Array | Uint16Array | Uint32Array | Int8Array | Int16Array | Int32Array;
+    BigInt: BigInt;
+    number: number;
+    string: string;
+    boolean: boolean;
+    assertion: KindToType['expect.it'];
+    NaN: typeof NaN;
+    'expect.it': ExpectIt;
+    Promise: PromiseLike<any>;
+    wrapperObject: object;
+    undefined: undefined;
+    null: null;
+};
+
+export interface ExpectIt {
+    (...args: any[]): any;
+    _expectIt: any;
+}
+
+type FromKind<K extends UnexpectedKind> = KindToType[K];
+
+type Foo = TypeToKind<string[]>;
+
+export type TypeToKind<T> = T extends (...args: any[]) => any
+    ? 'function'
+    : T extends any[]
+    ? 'array'
+    : T extends ArrayLike<any>
+    ? 'array-like'
+    : T extends Set<any>
+    ? 'Set'
+    : T extends Error
+    ? 'Error'
+    : T extends Buffer
+    ? 'Buffer'
+    : T extends TypedArray
+    ? 'binaryArray'
+    : T extends BigInt
+    ? 'BigInt'
+    : T extends number
+    ? 'number' | 'NaN'
+    : T extends string
+    ? 'string'
+    : T extends boolean
+    ? 'boolean'
+    : // T extends KindToType['assertion'] ? 'assertion' :
+    // T extends KindToType['NaN'] ? 'NaN' :
+    // T extends KindToType['expect.it'] ? 'expect.it' :
+    T extends Promise<any>
+    ? 'Promise'
+    : // T extends KindToType['wrapperObject'] ? 'wrapperObject' :
+    T extends undefined
+    ? 'undefined'
+    : T extends null
+    ? 'null'
+    : T extends object
+    ? 'object'
+    : never;
+
+
+type ParsedType<Pre extends string = Empty> = Pre extends Empty ? UnexpectedKind : `${Desc<Pre>} ${UnexpectedKind}`;
+
+export type Desc<S extends string> = S extends `${infer Pre}(${infer Value})${infer Rest}`
+    ? ParsedChoice<Trim<Value>, Trim<Rest>, Trim<Pre>>
+    : S extends `${infer Pre}[${infer Value extends Flag}]${infer Rest}`
+    ? ParsedFlag<Value, Trim<Rest>, Trim<Pre>>
+    : S extends `${infer Pre}(${infer Value})${infer Rest}`
+    ? ParsedChoice<Trim<Value>, Trim<Rest>, Trim<Pre>>
+    : S extends `${infer Pre}<type>`
+    ? ParsedType<Trim<Pre>>
+    : S extends Empty
+    ? ''
+    : S;
+
+
+export type TypedArray =
+| Int8Array
+| Uint8Array
+| Uint8ClampedArray
+| Int16Array
+| Uint16Array
+| Int32Array
+| Uint32Array
+| Float32Array
+| Float64Array
+| BigInt64Array
+| BigUint64Array;
+
+type AnyFunction = (...args: any[]) => any

@@ -24,4 +24,13 @@ declare function expectType<T>(value: T): T;
 
 expect('foo', 'to be ok');
 
-expect('buybf')
+expect({foo: 'bar'}, 'to be a map whose values exhaustively satisfy', {foo: 'bar'});
+expect(false, 'not to be ok');
+expect('false', 'not to be truthy');
+expect({foo: 'bar'}, 'to have own property', 'foo', 'bar');
+expect(100, 'to be within', 90, 110);
+expect('foo', 'to match', /o/);
+expect('foo', 'to be within', 'afoo', 'foob');
+expect('foo', 'to be a string');
+expect('foo', 'to be one of', ['foo', 'bar', 'baz']);
+expect(['foo'], 'to be an array');
