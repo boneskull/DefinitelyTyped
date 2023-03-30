@@ -3,64 +3,6 @@
 // Definitions by: Christopher Hiller <https://github.com/boneskull>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-/// <reference types="node"/>
-
-export interface expect {
-    /**
-     * @see http://unexpected.js.org/api/use/
-     */
-    use: (plugin: PluginDefinition) => expect;
-
-    /**
-     * @see http://unexpected.js.org/api/clone/
-     */
-    clone: () => expect;
-
-    /**
-     * @see http://unexpected.js.org/api/addAssertion/
-     */
-    addAssertion: <T, A extends Array<any> = []>(
-        pattern: string,
-        handler: (unexpected: expect, subject: T, ...args: A) => void,
-    ) => expect;
-
-    /**
-     * @see http://unexpected.js.org/api/addType/
-     */
-    addType: <T>(typeDefinition: UnexpectedTypeDef<T>) => expect;
-
-    /**
-     * @see http://unexpected.js.org/api/fail/
-     */
-    fail: typeof failFn;
-
-    /**
-     * @see http://unexpected.js.org/api/freeze/
-     */
-    freeze: () => expect;
-
-    assertions: Record<string, Assertion[]>;
-}
-
-export interface Assertion {
-    handler: (unexpected: expect, subject: any, ...args: any[]) => void;
-    alternations: string[];
-    flags: Record<Flag, boolean>;
-
-    subject: Subject;
-}
-
-export interface Subject {
-    minimum: number;
-    maximum: number;
-    type: `type: ${UnexpectedKind}`;
-    args: Subject[];
-    testDescriptionString: string;
-    declaration: string;
-    expect?: expect;
-    specificity: number[];
-}
-
 export type UnexpectedKind =
     | 'function'
     | 'array'
@@ -94,16 +36,6 @@ export type Flag =
     | 'only'
     | 'own';
 
-export function failFn<A extends any[] = []>(format: string, ...args: A): void;
-export function failFn(error: Error): void;
-
-export interface PluginDefinition {
-    name?: string;
-    version?: string;
-    dependencies?: Array<string>;
-    installInto(unexpected: expect): void;
-}
-
 export interface UnexpectedTypeDef<T> {
     name: string;
     identify(value: any): value is T;
@@ -129,7 +61,7 @@ type TypedArray =
     | BigInt64Array
     | BigUint64Array;
 
-type AnyFunction = (...args: any[]) => any;
+export type AnyFunction = (...args: any[]) => any;
 
 type Expand<S extends string> = S extends `${infer A}|${infer Rest}` ? Trim<A> | Expand<Rest> : Trim<S>;
 
@@ -148,7 +80,7 @@ type ParsedType<Pre extends string = Empty> = Pre extends Empty ? UnexpectedKind
 /**
  * Converts an assertion description string (e.g., `to be (a map|a hash|an object) whose values [exhaustively] satisfy`) into a type for matching the description (2nd parameter) of an `expect()` overload.
  */
-type Desc<S extends string> = S extends `${infer Pre}(${infer Value})${infer Rest}`
+export type Desc<S extends string> = S extends `${infer Pre}(${infer Value})${infer Rest}`
     ? ParsedChoice<Trim<Value>, Trim<Rest>, Trim<Pre>>
     : S extends `${infer Pre}[${infer Value extends Flag}]${infer Rest}`
     ? ParsedFlag<Value, Trim<Rest>, Trim<Pre>>

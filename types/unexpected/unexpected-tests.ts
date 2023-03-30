@@ -1,4 +1,4 @@
-import expect from './';
+import * as unexpected from './';
 // import { ParsedSubject, ParsedDeclaration, Declaration, Choice } from './';
 
 /**
@@ -22,15 +22,16 @@ declare function expectType<T>(value: T): T;
 
 // expect(true, 'to be ok');
 
-expect('foo', 'to be ok');
+unexpected('foo', 'to be ok');
 
-expect({foo: 'bar'}, 'to be a map whose values exhaustively satisfy', {foo: 'bar'});
-expect(false, 'not to be ok');
-expect('false', 'not to be truthy');
-expect({foo: 'bar'}, 'to have own property', 'foo', 'bar');
-expect(100, 'to be within', 90, 110);
-expect('foo', 'to match', /o/);
-expect('foo', 'to be within', 'afoo', 'foob');
-expect('foo', 'to be a string');
-expect('foo', 'to be one of', ['foo', 'bar', 'baz']);
-expect(['foo'], 'to be an array');
+unexpected({foo: 'bar'}, 'to be a map whose values exhaustively satisfy', {foo: 'bar'});
+unexpected(false, 'not to be ok');
+unexpected('false', 'not to be truthy');
+unexpected({foo: 'bar'}, 'to have own property', 'foo', 'bar');
+unexpected(100, 'to be within', 90, 110);
+unexpected('foo', 'to match', /o/);
+unexpected('foo', 'to be within', 'afoo', 'foob');
+unexpected('foo', 'to be a string');
+unexpected('foo', 'to be one of', ['foo', 'bar', 'baz']);
+unexpected(['foo'], 'to be an array');
+unexpected.fail('foo');
