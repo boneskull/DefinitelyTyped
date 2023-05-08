@@ -5,12 +5,9 @@
 
 /// <reference types="node"/>
 
-import {
-    AnyFunction,
-    Desc,
-    UnexpectedKind as _UnexpectedKind,
-    UnexpectedTypeDef,
-} from './internal';
+import * as Promise from 'bluebird';
+
+import { AnyFunction, Desc, UnexpectedKind as _UnexpectedKind, UnexpectedTypeDef, FindPromises } from './internal';
 
 // boolean handlers
 declare function unexpected(subject: boolean, desc: Desc<'[not] to be (true|false)'>): void;
@@ -18,17 +15,34 @@ declare function unexpected(subject: boolean, desc: Desc<'[not] to be (true|fals
 // string handlers
 declare function unexpected(subject: string, desc: Desc<'to be (the empty|an empty|non-empty) string'>): void;
 declare function unexpected(subject: string, desc: Desc<'[not] to match'>, regexp: RegExp): void;
-declare function unexpected(subject: string, desc: Desc<'[not] to contain'>, expected: string, ...strings: string[]): void;
+declare function unexpected(
+    subject: string,
+    desc: Desc<'[not] to contain'>,
+    expected: string,
+    ...strings: string[]
+): void;
 declare function unexpected(subject: string, desc: Desc<'[not] to (begin|start) with'>, expected: string): void;
 declare function unexpected(subject: string, desc: Desc<'[not] to end with'>, expected: string): void;
 
 // string or array handlers
-declare function unexpected(subject: string | ArrayLike<any>, desc: Desc<'[not] to have length'>, expected: number): void;
-declare function unexpected(subject: string | ArrayLike<any> | object | Set<any>, desc: Desc<'[not] to be empty'>): void;
+declare function unexpected(
+    subject: string | ArrayLike<any>,
+    desc: Desc<'[not] to have length'>,
+    expected: number,
+): void;
+declare function unexpected(
+    subject: string | ArrayLike<any> | object | Set<any>,
+    desc: Desc<'[not] to be empty'>,
+): void;
 declare function unexpected(subject: string | ArrayLike<any> | object, desc: Desc<'to be non-empty'>): void;
 
 // number handlers
-declare function unexpected(subject: number, desc: Desc<'[not] to be close to'>, expected: number, delta?: number): void;
+declare function unexpected(
+    subject: number,
+    desc: Desc<'[not] to be close to'>,
+    expected: number,
+    delta?: number,
+): void;
 declare function unexpected(subject: number, desc: Desc<'[not] to be finite'>): void;
 declare function unexpected(subject: number, desc: Desc<'[not] to be infinite'>): void;
 
@@ -55,7 +69,12 @@ declare function unexpected<T extends ArrayLike<U>, U>(
     expected: U,
     ...values: U[]
 ): void;
-declare function unexpected(subject: ArrayLike<any>, desc: Desc<'[not] to contain'>, expected: any, ...values: any[]): void;
+declare function unexpected(
+    subject: ArrayLike<any>,
+    desc: Desc<'[not] to contain'>,
+    expected: any,
+    ...values: any[]
+): void;
 declare function unexpected(
     subject: ArrayLike<any>,
     desc: Desc<'to have items [exhaustively] satisfying'>,
@@ -123,7 +142,12 @@ declare function unexpected(
     assertion: any,
     ...assertions: any[]
 ): void;
-declare function unexpected(subject: AnyFunction, desc: Desc<'[when] called'>, assertion: any, ...assertions: any[]): void;
+declare function unexpected(
+    subject: AnyFunction,
+    desc: Desc<'[when] called'>,
+    assertion: any,
+    ...assertions: any[]
+): void;
 
 declare function unexpected(subject: AnyFunction, desc: Desc<'to call the callback'>): Promise<void>;
 declare function unexpected(subject: AnyFunction, desc: Desc<'to call the callback without error'>): Promise<void>;
@@ -153,7 +177,11 @@ declare function unexpected<T extends Set<U>, U>(
     expected: U,
     ...moreExpected: U[]
 ): void;
-declare function unexpected(subject: Set<any>, desc: Desc<'to have items [exhaustively] satisfying'>, expected: any): void;
+declare function unexpected(
+    subject: Set<any>,
+    desc: Desc<'to have items [exhaustively] satisfying'>,
+    expected: any,
+): void;
 declare function unexpected(
     subject: Set<any>,
     desc: Desc<'to have an item [exhaustively] satisfying'>,
@@ -239,7 +267,11 @@ declare function unexpected(
 declare function unexpected(subject: object, desc: Desc<'not to have key'>, expected: PropertyKey): void;
 declare function unexpected(subject: object, desc: Desc<'to [not] [only] have key'>, expected: PropertyKey): void;
 declare function unexpected(subject: object, desc: Desc<'to satisfy'>, expected: AnyFunction): void;
-declare function unexpected(subject: object, desc: Desc<'to have values [exhaustively] satisfying'>, expected: any): void;
+declare function unexpected(
+    subject: object,
+    desc: Desc<'to have values [exhaustively] satisfying'>,
+    expected: any,
+): void;
 declare function unexpected(subject: object, desc: Desc<'to have keys satisfying'>, expected: any): void;
 declare function unexpected(
     subject: object,
@@ -267,7 +299,11 @@ declare function unexpected(subject: any, desc: Desc<'[not] to be falsy'>, messa
 declare function unexpected(subject: any, desc: Desc<'[not] to be (null|undefined|defined|NaN)'>): void;
 declare function unexpected(subject: any, desc: Desc<'[not] to be an (object|array)'>): void;
 declare function unexpected(subject: any, desc: Desc<`[not] to be (a|an) <type>`>): void;
-declare function unexpected(subject: any, desc: Desc<'[not] to [exhaustively] satisfy [assertion]'>, expected: any): void;
+declare function unexpected(
+    subject: any,
+    desc: Desc<'[not] to [exhaustively] satisfy [assertion]'>,
+    expected: any,
+): void;
 declare function unexpected(subject: any, desc: Desc<'to [exhaustively] satisfy'>, expected: any): void;
 declare function unexpected(
     subject: any,
@@ -278,32 +314,40 @@ declare function unexpected(
 ): void;
 
 declare namespace unexpected {
-    type AssertionHandler<T, A extends readonly any[] = any[]> = (expect: typeof unexpected, subject: T, ...args: A) => void;
+    type AssertionHandler<S extends string, A extends readonly any[] = any[]> = (
+        expect: typeof unexpected,
+        subject: S,
+        ...args: A
+    ) => void;
 
     type MagicPen = any;
 
     type StyleHandler = (this: MagicPen, text: string, rainbowColors: string[]) => void;
     type Flag =
-    | 'exhaustively'
-    | 'not'
-    | 'when'
-    | 'async'
-    | 'numerically'
-    | 'constructor'
-    | 'assertion'
-    | 'only'
-    | 'own';
+        | 'exhaustively'
+        | 'not'
+        | 'when'
+        | 'async'
+        | 'numerically'
+        | 'constructor'
+        | 'assertion'
+        | 'only'
+        | 'own';
     interface Assertion {
-        handler: <S extends string, TArgs extends readonly any[] = any[]>(expect: typeof unexpected, subject: Desc<S>, ...args: TArgs) => void;
+        handler: <S extends string, TArgs extends readonly any[] = any[]>(
+            expect: typeof unexpected,
+            subject: Desc<S>,
+            ...args: TArgs
+        ) => void;
         alternations: string[];
         flags: Record<Partial<Flag>, boolean>;
         subject: Subject;
     }
-    
+
     interface Subject {
         minimum: number;
         maximum: number;
-        type: `type: ${_UnexpectedKind}`;
+        type: `type: ${UnexpectedKind}`;
         args: Subject[];
         testDescriptionString: string;
         declaration: string;
@@ -318,10 +362,21 @@ declare namespace unexpected {
         installInto(expect: typeof unexpected): void;
     }
 
+    type OutputOptions =
+        | {
+              isMagicPen: boolean;
+          }
+        | {
+              format: string;
+          }
+        | {
+              output: MagicPen;
+          };
+
     type UnexpectedKind = _UnexpectedKind;
-    
+
     /**
-     * @see http://unexpected.js.org/api/use/
+     * @see {@link http://unexpected.js.org/api/use/}
      */
     function use(plugin: PluginDefinition): typeof unexpected;
 
@@ -332,7 +387,7 @@ declare namespace unexpected {
      *
      * Adding new functionality to the cloned instance will not affect the original instance.
      *
-     * @see http://unexpected.js.org/api/clone/
+     * @see {@link http://unexpected.js.org/api/clone/}
      * @returns A new {@link unexpected} instance
      */
     function clone(): typeof unexpected;
@@ -343,7 +398,7 @@ declare namespace unexpected {
      * @param pattern - A string pattern (or an array of patterns) that describes the assertion.
      * @param handler - A handler function that is called when the assertion is invoked.
      * @returns `expect` instance
-     * @see http://unexpected.js.org/api/addAssertion/
+     * @see {@link http://unexpected.js.org/api/addAssertion/}
      */
     function addAssertion<T, A extends readonly any[] = any[]>(
         pattern: string,
@@ -352,13 +407,13 @@ declare namespace unexpected {
 
     /**
      * Install a single [MagicPen](https://github.com/sunesimonsen/magicpen) style into the {@link unexpected} instance.
-     * 
+     *
      * Proxies to MagicPen's `addStyle` method.
      *
      * @param name - Style name
      * @param style - Style handler
      * @returns `expect` instance
-     * @see http://unexpected.js.org/api/addStyle/
+     * @see {@link http://unexpected.js.org/api/addStyle/}
      */
     function addStyle(name: string, style: StyleHandler): typeof unexpected;
 
@@ -366,24 +421,25 @@ declare namespace unexpected {
      * Adds a new type definition to the {@link unexpected} instance.
      *
      * @returns `expect` instance
-     * @see http://unexpected.js.org/api/addType/
+     * @see {@link http://unexpected.js.org/api/addType/}
      */
     function addType<T>(typeDefinition: UnexpectedTypeDef<T>): typeof unexpected;
 
     /**
      * Create a new {@link unexpected} instance that maintains a close relationship to the instance it is created from.
      * @returns Child `expect` instance
-     * @see http://unexpected.js.org/api/child/
+     * @see {@link http://unexpected.js.org/api/child/}
      */
     function child(): typeof unexpected;
 
     /**
      * Explicitly forces failure.
      *
-     * @see http://unexpected.js.org/api/fail/
+     * @see {@link http://unexpected.js.org/api/fail/}
      */
-    function fail<A extends readonly any[] = any[]>(format: string, ...args: A): void;
+    function fail(format: string, ...args: any[]): void;
     function fail(error: Error): void;
+    function fail(options: { message?: MagicPen | string | ((output: MagicPen) => void); diff?: DiffMethod }): void;
 
     /**
      * Prevents further assertions, types, styles, plugins, and themes from
@@ -396,7 +452,7 @@ declare namespace unexpected {
 
     /**
      * Install a [MagicPen](https://github.com/sunesimonsen/magicpen) theme into the {@link unexpected} instance.
-     * 
+     *
      * Proxies to MagicPen's `installTheme` method.
      * @param theme - MagicPen theme
      */
@@ -404,21 +460,82 @@ declare namespace unexpected {
 
     /**
      * Creates a `Promise` with the given function body.
-     * 
+     *
      * When the body takes no arguments, the body will be executed.
      * When the body takes a single argument, it acts like a Node.js-style callback.
      * When the body takes two arguments, it acts like `new Promise(resolve, reject)`.
      * @see http://unexpected.js.org/api/promise/
      */
-    function promise<T>(handler: () => T|PromiseLike<T>): typeof unexpected;
-    function promise<T>(resolve: (value: T) => void, reject: (reason: any) => void): typeof unexpected;
-    function promise(handler: (run: (err?: any, result?: any) => void) => void): typeof unexpected;
+    function promise<T>(handler: () => T | Promise<T> | PromiseLike<T>): Promise<typeof unexpected>;
+    function promise<T>(resolve: (value: T) => void, reject: (reason: any) => void): Promise<typeof unexpected>;
+    function promise(handler: (run: (err?: any, result?: any) => void) => void): Promise<typeof unexpected>;
 
     namespace promise {
-        function all<T>(value: T): Promise<T[]>;
+        /**
+         * Find all promises in the given structure and return a promise that will be fulfilled when all of the promises in the structure have been fulfilled.
+         * @param value Structure containing Promises
+         * @returns Promise fulfilling with array of fulfilled Promises
+         */
+        function all<T>(value: T): Promise<FindPromises<T>>;
+        /**
+         * Find all promises in the given structure and return a promise that will be fulfilled when any of the promises in the structure have been fulfilled.
+         * @param value Structure containing Promises
+         * @returns Promise fulfilling with the first fulfilled Promise from the structure
+         */
+        function any<T>(value: T): Promise<FindPromises<T>[number]>;
+        /**
+         * Find all promises in the given structure and return a promise that will be fulfilled when all of the promises have been rejected or fulfilled.
+         * @param value
+         */
+        function settle<T>(value: T): Promise<FindPromises<T>>;
     }
 
+    // XXX this is wrong
+    function shift<T, A extends Assertion>(this: A, newSubject: T, assertionIndex?: -1): typeof unexpected;
+    function shift<T, A extends Assertion>(this: A, newSubject: T, assertionIndex: number): typeof unexpected;
+    function shift<A extends Assertion>(this: A): A['subject'];
+
+    /**
+     * Returns a description of all registered assertions
+     */
+    function toString(): string;
+
+    class UnexpectedError extends Error {
+        isUnexpected: true;
+        parent?: UnexpectedError;
+        getErrorMessage(): MagicPen;
+        getParents(): UnexpectedError[]|undefined;
+        getAllErrors(): UnexpectedError[];
+        getDiff(options: OutputOptions): string;
+        getDiffMethod(): DiffMethod;
+        getLabel(): string;
+    }
+
+    type DiffMethod = (
+        output: MagicPen,
+        diff: string,
+        inspect: (value: any, depth?: number|null, outputOrFormat?: MagicPen | string) => string,
+        equal: <T>(a: T, b: unknown) => b is T,
+    ) => void;
+
+    function withError<A extends Assertion>(
+        this: A,
+        run: () => typeof unexpected,
+        handler: (e: UnexpectedError) => void,
+    ): typeof unexpected;
+
     const assertions: Record<string, Assertion[]>;
+
+    interface Context {
+        level: number;
+        child(): Context;
+    }
+
+    type WrappedExpect<A extends Assertion> = typeof unexpected & {
+        context: Context;
+        execute: WrappedExpect<A>;
+        alternations: 
+    }
 }
 
 export = unexpected;

@@ -2,7 +2,8 @@
 // Project: https://github.com/unexpectedjs/unexpected#readme
 // Definitions by: Christopher Hiller <https://github.com/boneskull>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
-
+import * as _ from 'ts-toolbelt';
+import * as Promise from 'bluebird';
 export type UnexpectedKind =
     | 'function'
     | 'array'
@@ -119,3 +120,33 @@ export interface ExpectIt {
     (...args: any[]): any;
     _expectIt: any;
 }
+
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
+type LastOf<T> = UnionToIntersection<T extends any ? () => T : never> extends () => infer R ? R : never;
+
+// TS4.0+
+type Push<T extends any[], V> = [...T, V];
+
+// TS4.1+
+type TuplifyUnion<T, L = LastOf<T>, N = [T] extends [never] ? true : false> = true extends N
+    ? []
+    : Push<TuplifyUnion<Exclude<T, L>>, L>;
+
+type ObjValueTuple<T, KS extends any[] = TuplifyUnion<keyof T>, R extends any[] = []> = KS extends [
+    infer K,
+    ...infer KT,
+]
+    ? ObjValueTuple<T, KT, [...R, T[K & keyof T]]>
+    : R;
+
+type NestedPromiseTuple<T> = [
+    T extends Promise<any>
+        ? T
+        : T extends readonly any[]
+        ? { [K in keyof T]: [...NestedPromiseTuple<T[K]>] }
+        : T extends object
+        ? [...NestedPromiseTuple<ObjValueTuple<T>>]
+        : [],
+];
+
+export type FindPromises<T> = _.List.Flatten<NestedPromiseTuple<T>>;
